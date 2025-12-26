@@ -34,7 +34,9 @@ npm install
   - `token` ist ein frei waehlbarer Code, der beim Login abgefragt werden kann.
   - `Geraetename` dient nur zur Anzeige/Identifikation in der UI.
   - Keine Leerzeilen am Anfang; Kommentare sind nicht vorgesehen.
-  - Optional: Fuer schnelle Tokens `./generate-token.command` ausfuehren.
+  - Token generieren:
+    - **macOS:** `./generate-token.command` ausfuehren
+    - **Linux/Raspberry Pi:** `node -e "console.log(require('crypto').randomUUID())"`
   - Beispiel:
     ```txt
     123456789|MacBook von Manu
