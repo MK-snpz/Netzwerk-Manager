@@ -1,10 +1,8 @@
 # Dependencies
 node_modules/
 
-# Sensible Daten - NIEMALS committen!
+# Sensible Daten - state.json enthaelt Laufzeitdaten
 Data/state.json
-Data/Nutzer
-Data/LoginToken.txt
 
 # macOS
 .DS_Store
