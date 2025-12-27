@@ -26,6 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const defaultState = {
   theme: 'dark',
+  cardOrder: ['ports-grid', 'pihole', 'speedport', 'versions', 'speedtest'],
   credentials: { username: 'admin', password: 'admin' },
   speedportInfo: {
     wifiName: '',
@@ -104,6 +105,7 @@ function readState() {
     raspberryInfo: { ...defaultState.raspberryInfo, ...(parsed.raspberryInfo || {}) },
     switchPorts: parsed.switchPorts || defaultState.switchPorts,
     routerPorts: parsed.routerPorts || defaultState.routerPorts,
+    cardOrder: Array.isArray(parsed.cardOrder) ? parsed.cardOrder : defaultState.cardOrder,
     versions,
     speedportVersions: Array.isArray(parsed.speedportVersions) ? parsed.speedportVersions : [],
     raspberryVersions: Array.isArray(parsed.raspberryVersions) ? parsed.raspberryVersions : [],
@@ -230,6 +232,7 @@ function maskStateForClient(state) {
     speedportVersions: state.speedportVersions,
     raspberryInfo: state.raspberryInfo,
     raspberryVersions: state.raspberryVersions,
+    cardOrder: state.cardOrder,
     username: state.credentials.username,
   };
 }
@@ -467,6 +470,17 @@ app.post('/api/raspberry', authRequired, (req, res) => {
     raspberryInfo: state.raspberryInfo,
     raspberryVersions: state.raspberryVersions,
   });
+});
+
+app.post('/api/layout', authRequired, (req, res) => {
+  const { cardOrder } = req.body || {};
+  if (!Array.isArray(cardOrder)) {
+    return res.status(400).json({ error: 'cardOrder muss ein Array sein' });
+  }
+  const state = readState();
+  state.cardOrder = cardOrder;
+  saveState(state);
+  res.json({ ok: true, cardOrder: state.cardOrder });
 });
 
 app.get('/api/versions', authRequired, (req, res) => {

@@ -67,6 +67,7 @@ const state = {
   raspberryInfo: {},
   raspberryVersions: [],
   speedportVersions: [],
+  cardOrder: [],
   live: {
     switchPorts: [],
     routerPorts: [],
@@ -190,6 +191,9 @@ async function handleLogin() {
     connectSocket();
     els.loginCard.style.display = 'none';
     els.app.style.display = 'block';
+    // TopBar anzeigen nach Login
+    const topBar = document.getElementById('topBar');
+    if (topBar) topBar.style.display = 'flex';
   } catch (e) {
     console.error(e);
     showLoginStatus('Server nicht erreichbar.', true);
@@ -234,6 +238,9 @@ async function loginWithDeviceToken(token) {
   connectSocket();
   els.loginCard.style.display = 'none';
   els.app.style.display = 'block';
+  // TopBar anzeigen nach Login
+  const topBar = document.getElementById('topBar');
+  if (topBar) topBar.style.display = 'flex';
   return { success: true };
 }
 
@@ -265,6 +272,7 @@ function applyPayload(payload) {
   state.raspberryVersions = payload.raspberryVersions || [];
   state.speedportVersions = payload.speedportVersions || [];
   state.username = payload.username || '';
+  state.cardOrder = payload.cardOrder || [];
   state.speedportInfo = { ...state.live.speedportInfo };
   state.raspberryInfo = { ...state.live.raspberryInfo };
   state.viewFromLive = true;
@@ -280,6 +288,10 @@ function applyPayload(payload) {
   fillSettings();
   fillSpeedport();
   fillRaspberry();
+  // Layout vom Server anwenden
+  if (state.cardOrder && state.cardOrder.length > 0) {
+    applyTabOrder(state.cardOrder);
+  }
   els.versionCard.style.display = 'block';
   if (els.raspberryVersionCard) {
     els.raspberryVersionCard.style.display = 'block';
@@ -1120,3 +1132,191 @@ if (startTestBtn) {
 }
 
 speedTest.updateHostNotice();
+
+// ========================================
+// VERSION 1.1: Drag & Drop Verschieben
+// ========================================
+
+const reorderState = {
+  isActive: false,
+  draggedElement: null,
+  cardOrder: []
+};
+
+// Reihenfolge an Server speichern
+async function saveTabOrder() {
+  const items = getSortableItems();
+  if (!items.length) return;
+
+  const order = items.map(el => el.getAttribute('data-tab-id')).filter(Boolean);
+  reorderState.cardOrder = order;
+
+  if (!state.token) return;
+
+  try {
+    await fetch('/api/layout', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ cardOrder: order }),
+    });
+  } catch (e) {
+    console.error('Layout speichern fehlgeschlagen:', e);
+  }
+}
+
+// Gespeicherte Reihenfolge anwenden
+function applyTabOrder(order) {
+  if (!order || order.length === 0) return;
+
+  const container = document.getElementById('sortableContainer');
+  if (!container) return;
+
+  reorderState.cardOrder = order;
+
+  // Elemente in gespeicherter Reihenfolge sortieren (nur direkte Kinder)
+  order.forEach(tabId => {
+    const element = Array.from(container.children).find(
+      el => el.getAttribute('data-tab-id') === tabId
+    );
+    if (element) {
+      container.appendChild(element);
+    }
+  });
+}
+
+// Reorder-Modus aktivieren/deaktivieren
+function toggleReorderMode() {
+  reorderState.isActive = !reorderState.isActive;
+
+  const btn = document.getElementById('reorderModeBtn');
+  const container = document.getElementById('sortableContainer');
+
+  if (reorderState.isActive) {
+    document.body.classList.add('reorder-mode');
+    btn.classList.add('active');
+
+    // Hint hinzufügen
+    const hint = document.createElement('div');
+    hint.className = 'reorder-hint';
+    hint.id = 'reorderHint';
+    hint.textContent = 'Karten per Drag & Drop verschieben. Klicke erneut auf "Verschieben" zum Beenden.';
+    container.insertBefore(hint, container.firstChild);
+
+    // Drag & Drop aktivieren
+    enableDragAndDrop();
+  } else {
+    document.body.classList.remove('reorder-mode');
+    btn.classList.remove('active');
+
+    // Hint entfernen
+    const hint = document.getElementById('reorderHint');
+    if (hint) hint.remove();
+
+    // Drag & Drop deaktivieren
+    disableDragAndDrop();
+
+    // Reihenfolge speichern
+    saveTabOrder();
+  }
+}
+
+// Hole nur die direkten verschiebbaren Kinder
+function getSortableItems() {
+  const container = document.getElementById('sortableContainer');
+  if (!container) return [];
+
+  // Nur direkte Kinder des Containers die verschiebbar sind
+  return Array.from(container.children).filter(el =>
+    el.classList.contains('sortable-card') ||
+    (el.classList.contains('grid') && el.hasAttribute('data-tab-id'))
+  );
+}
+
+// Drag & Drop Events aktivieren
+function enableDragAndDrop() {
+  const draggables = getSortableItems();
+
+  draggables.forEach(el => {
+    el.setAttribute('draggable', 'true');
+    el.addEventListener('dragstart', handleDragStart);
+    el.addEventListener('dragend', handleDragEnd);
+    el.addEventListener('dragover', handleDragOver);
+    el.addEventListener('drop', handleDrop);
+    el.addEventListener('dragleave', handleDragLeave);
+  });
+}
+
+// Drag & Drop Events deaktivieren
+function disableDragAndDrop() {
+  const draggables = getSortableItems();
+
+  draggables.forEach(el => {
+    el.setAttribute('draggable', 'false');
+    el.removeEventListener('dragstart', handleDragStart);
+    el.removeEventListener('dragend', handleDragEnd);
+    el.removeEventListener('dragover', handleDragOver);
+    el.removeEventListener('drop', handleDrop);
+    el.removeEventListener('dragleave', handleDragLeave);
+  });
+}
+
+function handleDragStart(e) {
+  reorderState.draggedElement = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', this.getAttribute('data-tab-id'));
+}
+
+function handleDragEnd() {
+  this.classList.remove('dragging');
+  reorderState.draggedElement = null;
+
+  // Alle drag-over Klassen entfernen
+  document.querySelectorAll('.drag-over').forEach(el => {
+    el.classList.remove('drag-over');
+  });
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+
+  if (this !== reorderState.draggedElement) {
+    this.classList.add('drag-over');
+  }
+}
+
+function handleDragLeave() {
+  this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  this.classList.remove('drag-over');
+
+  if (this === reorderState.draggedElement) return;
+
+  const container = document.getElementById('sortableContainer');
+  if (!container) return;
+
+  const allItems = getSortableItems();
+  const draggedIndex = allItems.indexOf(reorderState.draggedElement);
+  const dropIndex = allItems.indexOf(this);
+
+  if (draggedIndex < 0 || dropIndex < 0) return;
+
+  if (draggedIndex < dropIndex) {
+    container.insertBefore(reorderState.draggedElement, this.nextSibling);
+  } else {
+    container.insertBefore(reorderState.draggedElement, this);
+  }
+}
+
+// Reorder Button Event
+const reorderModeBtn = document.getElementById('reorderModeBtn');
+if (reorderModeBtn) {
+  reorderModeBtn.addEventListener('click', toggleReorderMode);
+}
+
+// TopBar Element für spätere Anzeige
+const topBar = document.getElementById('topBar');

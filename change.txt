@@ -1,0 +1,19 @@
+Netzwerk Manager - Version 1.1
+==============================
+
+NEU:
+----
+- Verschieben-Modus: Karten koennen per Drag & Drop umsortiert werden
+- Top-Bar jetzt nur nach Login sichtbar (vorher immer sichtbar)
+- Layout-Speicherung: Karten-Reihenfolge wird auf dem Server gespeichert (state.json)
+- Neuer API-Endpunkt: POST /api/layout zum Speichern der Karten-Reihenfolge
+
+GEAENDERT:
+----------
+- "Router Infos" umbenannt zu "Speedport Infos"
+- Vorkonfigurierte Port-Belegungen statt leere Ports
+- Pi-Model auf "Raspberry Pi Zero 2 W" gesetzt
+
+ENTFERNT:
+---------
+- Footer "Made by MK-snpz" entfernt

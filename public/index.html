@@ -14,15 +14,28 @@
   </head>
   <body data-theme="dark">
     <div class="page">
-      <div class="top-bar">
-        <button class="theme-toggle" id="themeToggle" aria-label="Darstellung wechseln">
-          <span id="themeIcon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M12 4.5V6.5M12 17.5V19.5M18.364 7.05L17 8.414M7 17L5.636 18.364M19.5 12H17.5M6.5 12H4.5M17 17L18.364 18.364M7 7L5.636 5.636M12 8.5C9.79086 8.5 8 10.2909 8 12.5C8 14.7091 9.79086 16.5 12 16.5C14.2091 16.5 16 14.7091 16 12.5C16 10.2909 14.2091 8.5 12 8.5Z" />
-            </svg>
-          </span>
-          <span>Light / Dark</span>
-        </button>
+      <!-- Top Bar - nur nach Login sichtbar -->
+      <div class="top-bar" id="topBar" style="display: none;">
+        <div class="top-bar-left">
+          <button class="theme-toggle" id="themeToggle" aria-label="Darstellung wechseln">
+            <span id="themeIcon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 4.5V6.5M12 17.5V19.5M18.364 7.05L17 8.414M7 17L5.636 18.364M19.5 12H17.5M6.5 12H4.5M17 17L18.364 18.364M7 7L5.636 5.636M12 8.5C9.79086 8.5 8 10.2909 8 12.5C8 14.7091 9.79086 16.5 12 16.5C14.2091 16.5 16 14.7091 16 12.5C16 10.2909 14.2091 8.5 12 8.5Z" />
+              </svg>
+            </span>
+            <span>Light / Dark</span>
+          </button>
+
+          <!-- Reorder Mode Toggle -->
+          <button class="theme-toggle" id="reorderModeBtn" aria-label="Verschieben">
+            <span class="toggle-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+              </svg>
+            </span>
+            <span>Verschieben</span>
+          </button>
+        </div>
         <div class="chip" id="versionChip">Letzte Version: --</div>
       </div>
 
@@ -55,8 +68,10 @@
       </section>
 
       <main id="app" style="display: none">
-        <div class="grid two equal-height" style="margin-bottom: 16px">
-          <section class="card">
+        <!-- Sortierbare Karten -->
+        <div id="sortableContainer">
+        <div class="grid two equal-height" style="margin-bottom: 16px" data-tab-id="ports-grid">
+          <section class="card" data-tab-id="switch">
             <div class="section-title">
               <div class="section-header">
                 <span class="icon-badge" aria-hidden="true">
@@ -88,7 +103,7 @@
             </table>
           </section>
 
-          <section class="card">
+          <section class="card" data-tab-id="router">
             <div class="section-title">
               <div class="section-header">
                 <span class="icon-badge" aria-hidden="true">
@@ -122,7 +137,7 @@
           </section>
         </div>
 
-        <section class="card raspberry-card" style="margin-bottom: 16px">
+        <section class="card raspberry-card sortable-card" style="margin-bottom: 16px" data-tab-id="pihole">
           <div class="section-title">
             <div class="section-header">
               <span class="icon-badge" aria-hidden="true">
@@ -175,7 +190,7 @@
           <div class="status success" id="raspberryStatus" hidden>Gespeichert.</div>
         </section>
 
-        <section class="card" style="margin-bottom: 16px">
+        <section class="card sortable-card" style="margin-bottom: 16px" data-tab-id="speedport">
           <div class="section-title">
             <div class="section-header">
               <span class="icon-badge" aria-hidden="true">
@@ -193,10 +208,7 @@
                   />
                 </svg>
               </span>
-              <h3>
-                Speedport Infos
-                <span class="label-hint">(http://speedport.ip funktioniert nicht wegen dem PiHole)</span>
-              </h3>
+              <h3>Speedport Infos</h3>
             </div>
           </div>
           <div class="input-row">
@@ -234,7 +246,7 @@
           </div>
         </section>
 
-        <section class="card" style="margin-bottom: 16px">
+        <section class="card sortable-card" style="margin-bottom: 16px" data-tab-id="versions">
           <div class="section-title">
             <div class="section-header">
               <span class="icon-badge" aria-hidden="true">
@@ -276,7 +288,7 @@
           </div>
         </section>
 
-        <section class="card" style="margin-bottom: 16px">
+        <section class="card sortable-card" style="margin-bottom: 16px" data-tab-id="speedtest">
           <div class="section-title">
             <div class="section-header">
               <span class="icon-badge" aria-hidden="true">
@@ -337,8 +349,10 @@
             </div>
           </div>
         </section>
+        </div><!-- Ende sortableContainer -->
 
-        <section class="card full-span" style="margin-bottom: 16px">
+        <!-- Credentials - nicht verschiebbar -->
+        <section class="card full-span" style="margin-bottom: 16px" data-tab-id="credentials" data-fixed="true">
           <div class="section-title">
             <div class="section-header">
               <span class="icon-badge" aria-hidden="true">

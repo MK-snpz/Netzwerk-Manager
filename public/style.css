@@ -69,6 +69,12 @@ a {
   margin-bottom: 24px;
 }
 
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .theme-toggle {
   display: inline-flex;
   align-items: center;
@@ -591,4 +597,60 @@ input:focus {
 .speedtest-buttons .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ========================================
+   VERSION 1.1: Drag & Drop Verschieben
+   ======================================== */
+
+/* Reorder Mode Button aktiv */
+.theme-toggle.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+/* Sortable Container */
+#sortableContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sortierbare Karten im Reorder-Modus */
+body.reorder-mode .sortable-card,
+body.reorder-mode .grid[data-tab-id] {
+  cursor: grab;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+body.reorder-mode .sortable-card:hover,
+body.reorder-mode .grid[data-tab-id]:hover {
+  transform: scale(1.01);
+  box-shadow: 0 8px 32px rgba(109, 214, 255, 0.15);
+}
+
+/* Karte wird gezogen */
+body.reorder-mode .sortable-card.dragging,
+body.reorder-mode .grid[data-tab-id].dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+/* Drop-Ziel Indikator */
+body.reorder-mode .sortable-card.drag-over,
+body.reorder-mode .grid[data-tab-id].drag-over {
+  border: 2px dashed var(--accent);
+  background: rgba(109, 214, 255, 0.05);
+}
+
+/* Reorder-Hinweis */
+.reorder-hint {
+  text-align: center;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: rgba(109, 214, 255, 0.1);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  color: var(--accent);
+  font-weight: 500;
 }
